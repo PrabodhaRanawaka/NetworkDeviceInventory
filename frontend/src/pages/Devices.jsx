@@ -1,61 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom'
 import DeviceTable from '../components/DeviceTable'
-
-const initialDevices = [
-  {
-    id: 1,
-    name: 'Core-Router-01',
-    type: 'Router',
-    ipAddress: '192.168.1.1',
-    location: 'Main Office',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Switch-Floor-01',
-    type: 'Switch',
-    ipAddress: '192.168.1.10',
-    location: 'First Floor',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'AP-Meeting-Room',
-    type: 'Access Point',
-    ipAddress: '192.168.1.25',
-    location: 'Meeting Room',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Old-Router-02',
-    type: 'Router',
-    ipAddress: '192.168.1.2',
-    location: 'Server Room',
-    status: 'Inactive',
-  },
-  {
-    id: 5,
-    name: 'Switch-Floor-02',
-    type: 'Switch',
-    ipAddress: '192.168.1.20',
-    location: 'Second Floor',
-    status: 'Active',
-  },
-  {
-    id: 6,
-    name: 'AP-Lobby',
-    type: 'Access Point',
-    ipAddress: '192.168.1.30',
-    location: 'Lobby',
-    status: 'Active',
-  },
-]
+import {
+  getDevices,
+  createDevice,
+  updateDevice,
+  deleteDevice
+} from "../services/deviceService";
 
 function Devices() {
   const location = useLocation()
-  const [devices, setDevices] = useState(initialDevices)
+  const [devices, setDevices] = useState([]);
 
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -77,6 +32,19 @@ function Devices() {
     setShowForm(true)
   }
 }, [location.state])
+
+useEffect(() => {
+    const loadDevices = async () => {
+        try {
+            const data = await getDevices();
+            setDevices(data);
+        } catch (error) {
+            console.error("Failed to load devices:", error);
+        }
+    };
+
+    loadDevices();
+}, []);
 
   const filteredDevices = devices.filter((device) => {
     const matchesSearch =
@@ -102,38 +70,61 @@ function Devices() {
     })
   }
 
-  function handleSaveDevice(event) {
+async function handleSaveDevice(event) {
   event.preventDefault()
 
   if (editingDevice) {
-    const updatedDevices = devices.map((device) =>
-      device.id === editingDevice.id
-        ? {
-            ...device,
-            name: formData.name,
-            type: formData.type,
-            ipAddress: formData.ipAddress,
-            location: formData.location,
-            status: formData.status,
-          }
-        : device
-    )
-
-    setDevices(updatedDevices)
-  } else {
-    const newDevice = {
-      id: Date.now(),
-      name: formData.name,
-      type: formData.type,
+  try {
+    const deviceData = {
+      deviceName: formData.name,
+      deviceType: formData.type,
       ipAddress: formData.ipAddress,
+      macAddress: '00:00:00:00:00:00',
       location: formData.location,
       status: formData.status,
+      lastMaintenance: new Date(),
     }
 
-    setDevices([...devices, newDevice])
-  }
+    const updatedDevice = await updateDevice(
+      editingDevice.id,
+      deviceData
+    )
 
-  resetForm()
+    setDevices(
+      devices.map((device) =>
+        device.id === editingDevice.id
+          ? updatedDevice
+          : device
+      )
+    )
+
+    resetForm()
+    return
+  } catch (error) {
+    console.error("Failed to update device:", error)
+    return
+  }
+}
+
+  try {
+    const deviceData = {
+      deviceName: formData.name,
+      deviceType: formData.type,
+      ipAddress: formData.ipAddress,
+      macAddress: '00:00:00:00:00:00',
+      location: formData.location,
+      status: formData.status,
+      lastMaintenance: new Date(),
+    }
+
+    const newDevice = await createDevice(deviceData)
+
+    setDevices([...devices, newDevice])
+
+    resetForm()
+  } catch (error) {
+    console.error("Failed to create device:", error)
+  }
 }
 
 function handleEditDevice(device) {
@@ -150,7 +141,7 @@ function handleEditDevice(device) {
   setShowForm(true)
 }
 
-function handleDeleteDevice(id) {
+async function handleDeleteDevice(id) {
   const confirmed = window.confirm(
     'Are you sure you want to delete this device?'
   )
@@ -159,9 +150,15 @@ function handleDeleteDevice(id) {
     return
   }
 
-  setDevices(
-    devices.filter((device) => device.id !== id)
-  )
+  try {
+    await deleteDevice(id)
+
+    setDevices(
+      devices.filter((device) => device.id !== id)
+    )
+  } catch (error) {
+    console.error("Failed to delete device:", error)
+  }
 }
 
 function resetForm() {

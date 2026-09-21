@@ -1,43 +1,39 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import StatCard from '../components/StatCard'
 import DeviceTable from '../components/DeviceTable'
-
-const devices = [
-  {
-    id: 1,
-    name: 'Core-Router-01',
-    type: 'Router',
-    ipAddress: '192.168.1.1',
-    location: 'Main Office',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Switch-Floor-01',
-    type: 'Switch',
-    ipAddress: '192.168.1.10',
-    location: 'First Floor',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'AP-Meeting-Room',
-    type: 'Access Point',
-    ipAddress: '192.168.1.25',
-    location: 'Meeting Room',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Old-Router-02',
-    type: 'Router',
-    ipAddress: '192.168.1.2',
-    location: 'Server Room',
-    status: 'Inactive',
-  },
-]
+import { getDevices } from '../services/deviceService'
 
 function Dashboard() {
+  const [devices, setDevices] = useState([])
+
+  useEffect(() => {
+    const loadDevices = async () => {
+      try {
+        const data = await getDevices()
+        setDevices(data)
+      } catch (error) {
+        console.error('Failed to load dashboard devices:', error)
+      }
+    }
+
+    loadDevices()
+  }, [])
+
+  const totalDevices = devices.length
+
+  const activeDevices = devices.filter(
+    (device) => device.status === 'Active'
+  ).length
+
+  const inactiveDevices = devices.filter(
+    (device) => device.status === 'Inactive'
+  ).length
+
+  const locations = new Set(
+    devices.map((device) => device.location)
+  ).size
+
   return (
     <main className="main-content">
       <section className="welcome">
@@ -62,10 +58,10 @@ function Dashboard() {
       </section>
 
       <section className="stats">
-        <StatCard title="Total Devices" value="24" />
-        <StatCard title="Active Devices" value="21" />
-        <StatCard title="Inactive Devices" value="3" />
-        <StatCard title="Locations" value="5" />
+        <StatCard title="Total Devices" value={totalDevices} />
+        <StatCard title="Active Devices" value={activeDevices} />
+        <StatCard title="Inactive Devices" value={inactiveDevices} />
+        <StatCard title="Locations" value={locations} />
       </section>
 
       <section className="devices-section">
