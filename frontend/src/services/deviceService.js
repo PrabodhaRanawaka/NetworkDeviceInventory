@@ -5,8 +5,10 @@ const mapDevice = (device) => ({
     name: device.deviceName,
     type: device.deviceType,
     ipAddress: device.ipAddress,
+    macAddress: device.macAddress,
     location: device.location,
     status: device.status,
+    lastMaintenance: device.lastMaintenance,
 });
 
 export const getDevices = async () => {

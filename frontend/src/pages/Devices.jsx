@@ -11,6 +11,9 @@ import {
 function Devices() {
   const location = useLocation()
   const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -23,9 +26,11 @@ function Devices() {
     name: '',
     type: 'Router',
     ipAddress: '',
+    macAddress: '',
     location: '',
     status: 'Active',
-  })
+    lastMaintenance: '',
+})
 
   useEffect(() => {
   if (location.state?.openAddForm) {
@@ -34,22 +39,26 @@ function Devices() {
 }, [location.state])
 
 useEffect(() => {
-    const loadDevices = async () => {
-        try {
-            const data = await getDevices();
-            setDevices(data);
-        } catch (error) {
-            console.error("Failed to load devices:", error);
-        }
-    };
+  const loadDevices = async () => {
+    try {
+      const data = await getDevices();
+      setDevices(data);
+    } catch (error) {
+      console.error("Failed to load devices:", error);
+      setError("Unable to load devices. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadDevices();
+  loadDevices();
 }, []);
 
   const filteredDevices = devices.filter((device) => {
     const matchesSearch =
       device.name.toLowerCase().includes(search.toLowerCase()) ||
       device.ipAddress.toLowerCase().includes(search.toLowerCase()) ||
+      device.macAddress.toLowerCase().includes(search.toLowerCase()) ||
       device.location.toLowerCase().includes(search.toLowerCase())
 
     const matchesType =
@@ -73,16 +82,32 @@ useEffect(() => {
 async function handleSaveDevice(event) {
   event.preventDefault()
 
+  const macAddressPattern =
+   /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/
+
+  if (!macAddressPattern.test(formData.macAddress)) {
+    alert('Please enter a valid MAC address.')
+    return
+  }
+
+  const ipAddressPattern =
+    /^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$/
+
+  if (!ipAddressPattern.test(formData.ipAddress)) {
+    alert('Please enter a valid IPv4 address.')
+    return
+  }
+
   if (editingDevice) {
   try {
     const deviceData = {
       deviceName: formData.name,
       deviceType: formData.type,
       ipAddress: formData.ipAddress,
-      macAddress: '00:00:00:00:00:00',
+      macAddress: formData.macAddress,
       location: formData.location,
       status: formData.status,
-      lastMaintenance: new Date(),
+      lastMaintenance: formData.lastMaintenance,
     }
 
     const updatedDevice = await updateDevice(
@@ -98,6 +123,11 @@ async function handleSaveDevice(event) {
       )
     )
 
+    setSuccessMessage('Device updated successfully.')
+    setTimeout(() => {
+  setSuccessMessage('')
+}, 3000)
+
     resetForm()
     return
   } catch (error) {
@@ -111,15 +141,20 @@ async function handleSaveDevice(event) {
       deviceName: formData.name,
       deviceType: formData.type,
       ipAddress: formData.ipAddress,
-      macAddress: '00:00:00:00:00:00',
+      macAddress: formData.macAddress,
       location: formData.location,
       status: formData.status,
-      lastMaintenance: new Date(),
+      lastMaintenance: formData.lastMaintenance,
     }
 
     const newDevice = await createDevice(deviceData)
 
     setDevices([...devices, newDevice])
+
+    setSuccessMessage('Device added successfully.')
+    setTimeout(() => {
+  setSuccessMessage('')
+}, 3000)
 
     resetForm()
   } catch (error) {
@@ -131,12 +166,16 @@ function handleEditDevice(device) {
   setEditingDevice(device)
 
   setFormData({
-    name: device.name,
-    type: device.type,
-    ipAddress: device.ipAddress,
-    location: device.location,
-    status: device.status,
-  })
+  name: device.name,
+  type: device.type,
+  ipAddress: device.ipAddress,
+  macAddress: device.macAddress || '',
+  location: device.location,
+  status: device.status,
+  lastMaintenance: device.lastMaintenance
+    ? device.lastMaintenance.split('T')[0]
+    : '',
+})
 
   setShowForm(true)
 }
@@ -156,6 +195,12 @@ async function handleDeleteDevice(id) {
     setDevices(
       devices.filter((device) => device.id !== id)
     )
+
+    setSuccessMessage('Device deleted successfully.')
+    setTimeout(() => {
+  setSuccessMessage('')
+}, 3000)
+
   } catch (error) {
     console.error("Failed to delete device:", error)
   }
@@ -163,12 +208,14 @@ async function handleDeleteDevice(id) {
 
 function resetForm() {
   setFormData({
-    name: '',
-    type: 'Router',
-    ipAddress: '',
-    location: '',
-    status: 'Active',
-  })
+  name: '',
+  type: 'Router',
+  ipAddress: '',
+  macAddress: '',
+  location: '',
+  status: 'Active',
+  lastMaintenance: '',
+})
 
   setEditingDevice(null)
   setShowForm(false)
@@ -253,6 +300,19 @@ function resetForm() {
             </div>
 
             <div className="form-group">
+  <label htmlFor="macAddress">MAC Address</label>
+  <input
+    id="macAddress"
+    name="macAddress"
+    type="text"
+    placeholder="e.g. AA:BB:CC:DD:EE:FF"
+    value={formData.macAddress}
+    onChange={handleInputChange}
+    required
+  />
+</div>
+
+            <div className="form-group">
               <label htmlFor="location">Location</label>
               <input
                 id="location"
@@ -266,6 +326,18 @@ function resetForm() {
             </div>
 
             <div className="form-group">
+  <label htmlFor="lastMaintenance">Last Maintenance</label>
+  <input
+    id="lastMaintenance"
+    name="lastMaintenance"
+    type="date"
+    value={formData.lastMaintenance}
+    onChange={handleInputChange}
+    required
+  />
+</div>
+
+            <div className="form-group">
               <label htmlFor="status">Status</label>
               <select
                 id="status"
@@ -275,6 +347,7 @@ function resetForm() {
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
+                <option value="Maintenance">Maintenance</option>
               </select>
             </div>
 
@@ -308,7 +381,7 @@ function resetForm() {
         <div className="device-filters">
           <input
             type="text"
-            placeholder="Search by name, IP address or location..."
+            placeholder="Search by name, IP address, MAC address or location..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -331,14 +404,31 @@ function resetForm() {
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
+            <option value="Maintenance">Maintenance</option>
           </select>
         </div>
 
-        <DeviceTable
-  devices={filteredDevices}
-  onEdit={handleEditDevice}
-  onDelete={handleDeleteDevice}
-/>
+{successMessage && (
+  <div className="success-message">
+    {successMessage}
+  </div>
+)}
+
+        {loading ? (
+  <div className="empty-message">
+    Loading devices...
+  </div>
+) : error ? (
+  <div className="empty-message">
+    {error}
+  </div>
+) : (
+  <DeviceTable
+    devices={filteredDevices}
+    onEdit={handleEditDevice}
+    onDelete={handleDeleteDevice}
+  />
+)}
       </section>
     </main>
   )

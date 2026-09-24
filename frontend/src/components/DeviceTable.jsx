@@ -5,7 +5,9 @@ function DeviceTable({ devices, onEdit, onDelete }) {
         <span>Device Name</span>
         <span>Type</span>
         <span>IP Address</span>
+        <span>MAC Address</span>
         <span>Location</span>
+        <span>Last Maintenance</span>
         <span>Status</span>
         <span>Actions</span>
       </div>
@@ -20,7 +22,14 @@ function DeviceTable({ devices, onEdit, onDelete }) {
             <span>{device.name}</span>
             <span>{device.type}</span>
             <span>{device.ipAddress}</span>
+            <span>{device.macAddress}</span>
             <span>{device.location}</span>
+
+            <span>
+              {device.lastMaintenance
+                ? new Date(device.lastMaintenance).toLocaleDateString()
+                : 'Not available'}
+            </span>
 
             <span className={`status ${device.status.toLowerCase()}`}>
               {device.status}

@@ -245,6 +245,16 @@ body {
   font-size: 14px;
 }
 
+.success-message {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #e8f7ee;
+  color: #1f7a45;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -344,7 +354,7 @@ body {
 .table-header,
 .device-row {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.2fr 1.2fr 0.8fr 1.2fr;
+  grid-template-columns: 1.5fr 1fr 1.2fr 1.5fr 1fr 1.2fr 0.9fr 1.2fr;
   align-items: center;
   padding: 17px 25px;
   gap: 15px;
