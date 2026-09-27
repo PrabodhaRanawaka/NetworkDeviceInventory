@@ -23,6 +23,21 @@ export const getDevices = async () => {
     return data.map(mapDevice);
 };
 
+export const getMaintenanceDevices = async () => {
+    const response = await fetch(`${API_URL}/maintenance`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch maintenance devices");
+    }
+
+    const data = await response.json();
+
+    return data.map((device) => ({
+        ...mapDevice(device),
+        maintenanceStatus: device.maintenanceStatus
+    }));
+};
+
 export const createDevice = async (deviceData) => {
     const response = await fetch(API_URL, {
         method: "POST",

@@ -15,6 +15,42 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get("/maintenance", async (req, res) => {
+    try {
+        const devices = await Device.find();
+
+        const maintenanceDevices = devices.map((device) => {
+            const lastMaintenance = new Date(device.lastMaintenance);
+            const currentDate = new Date();
+
+            const differenceInTime = currentDate - lastMaintenance;
+            const differenceInDays =
+                differenceInTime / (1000 * 60 * 60 * 24);
+
+            let maintenanceStatus;
+
+            if (differenceInDays < 180) {
+                maintenanceStatus = "Up to Date";
+            } else if (differenceInDays < 365) {
+                maintenanceStatus = "Due Soon";
+            } else {
+                maintenanceStatus = "Overdue";
+            }
+
+            return {
+                ...device.toObject(),
+                maintenanceStatus
+            };
+        });
+
+        res.json(maintenanceDevices);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
 router.get("/:id", async (req, res) => {
     try {
         const device = await Device.findById(req.params.id);

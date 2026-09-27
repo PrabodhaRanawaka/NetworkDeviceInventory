@@ -2,23 +2,33 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import StatCard from '../components/StatCard'
 import DeviceTable from '../components/DeviceTable'
-import { getDevices } from '../services/deviceService'
+import MaintenanceTable from '../components/MaintenanceTable'
+import {
+  getDevices,
+  getMaintenanceDevices
+} from '../services/deviceService'
 
 function Dashboard() {
   const [devices, setDevices] = useState([])
+  const [maintenanceDevices, setMaintenanceDevices] = useState([])
 
   useEffect(() => {
-    const loadDevices = async () => {
-      try {
-        const data = await getDevices()
-        setDevices(data)
-      } catch (error) {
-        console.error('Failed to load dashboard devices:', error)
-      }
-    }
+  const loadDashboardData = async () => {
+    try {
+      const [deviceData, maintenanceData] = await Promise.all([
+        getDevices(),
+        getMaintenanceDevices()
+      ])
 
-    loadDevices()
-  }, [])
+      setDevices(deviceData)
+      setMaintenanceDevices(maintenanceData)
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+    }
+  }
+
+  loadDashboardData()
+}, [])
 
   const totalDevices = devices.length
 
@@ -33,6 +43,12 @@ function Dashboard() {
   const locations = new Set(
     devices.map((device) => device.location)
   ).size
+
+  const maintenanceDue = maintenanceDevices.filter(
+  (device) =>
+    device.maintenanceStatus === 'Due Soon' ||
+    device.maintenanceStatus === 'Overdue'
+).length
 
   return (
     <main className="main-content">
@@ -62,6 +78,7 @@ function Dashboard() {
         <StatCard title="Active Devices" value={activeDevices} />
         <StatCard title="Inactive Devices" value={inactiveDevices} />
         <StatCard title="Locations" value={locations} />
+        <StatCard title="Maintenance Due" value={maintenanceDue} />
       </section>
 
       <section className="devices-section">
@@ -78,6 +95,23 @@ function Dashboard() {
 
         <DeviceTable devices={devices} />
       </section>
+
+      <section className="devices-section">
+  <div className="section-header">
+    <div>
+      <h2>Maintenance Overview</h2>
+      <p>Devices requiring maintenance attention</p>
+    </div>
+  </div>
+
+  <MaintenanceTable
+  devices={maintenanceDevices.filter(
+    (device) =>
+      device.maintenanceStatus === 'Due Soon' ||
+      device.maintenanceStatus === 'Overdue'
+  )}
+/>
+</section>
     </main>
   )
 }
