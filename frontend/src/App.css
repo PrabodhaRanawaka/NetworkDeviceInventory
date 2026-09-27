@@ -45,6 +45,66 @@ body {
   color: white;
 }
 
+.navbar button {
+  background: none;
+  border: none;
+  color: #d9eeee;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.navbar button:hover {
+  color: white;
+}
+
+/* Login */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.login-card {
+  width: 360px;
+  max-width: 90%;
+  padding: 30px;
+  background: white;
+  border-radius: 10px;
+}
+
+.login-card form {
+  width: 280px;
+  margin: 0 auto;
+}
+
+.login-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.login-button {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 35px;
+  background: #012626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #024040;
+}
+
 /* Main content */
 
 .main-content {
