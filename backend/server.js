@@ -5,6 +5,7 @@ const cors = require("cors");
 const deviceRoutes = require("./routes/deviceRoutes");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -13,7 +14,7 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/devices", deviceRoutes);
+app.use("/api/devices", authMiddleware, deviceRoutes);
 app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {

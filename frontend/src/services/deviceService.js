@@ -1,5 +1,20 @@
 const API_URL = "http://localhost:5000/api/devices";
 
+// Attach the JWT token to every API request
+const authenticatedFetch = async (url, options = {}) => {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    return response;
+};
+
 const mapDevice = (device) => ({
     id: device._id,
     name: device.deviceName,
@@ -12,7 +27,7 @@ const mapDevice = (device) => ({
 });
 
 export const getDevices = async () => {
-    const response = await fetch(API_URL);
+    const response = await authenticatedFetch(API_URL);
 
     if (!response.ok) {
         throw new Error("Failed to fetch devices");
@@ -24,7 +39,9 @@ export const getDevices = async () => {
 };
 
 export const getMaintenanceDevices = async () => {
-    const response = await fetch(`${API_URL}/maintenance`);
+    const response = await authenticatedFetch(
+        `${API_URL}/maintenance`
+    );
 
     if (!response.ok) {
         throw new Error("Failed to fetch maintenance devices");
@@ -39,7 +56,7 @@ export const getMaintenanceDevices = async () => {
 };
 
 export const createDevice = async (deviceData) => {
-    const response = await fetch(API_URL, {
+    const response = await authenticatedFetch(API_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -57,13 +74,16 @@ export const createDevice = async (deviceData) => {
 };
 
 export const updateDevice = async (id, deviceData) => {
-    const response = await fetch(`${API_URL}/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(deviceData)
-    });
+    const response = await authenticatedFetch(
+        `${API_URL}/${id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(deviceData)
+        }
+    );
 
     if (!response.ok) {
         throw new Error("Failed to update device");
@@ -75,9 +95,12 @@ export const updateDevice = async (id, deviceData) => {
 };
 
 export const deleteDevice = async (id) => {
-    const response = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE"
-    });
+    const response = await authenticatedFetch(
+        `${API_URL}/${id}`,
+        {
+            method: "DELETE"
+        }
+    );
 
     if (!response.ok) {
         throw new Error("Failed to delete device");
