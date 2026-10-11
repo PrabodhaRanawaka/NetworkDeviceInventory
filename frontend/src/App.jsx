@@ -5,6 +5,7 @@ import Devices from './pages/Devices'
 import Locations from './pages/Locations'
 import Login from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
+import Register from './pages/Register'
 import './App.css'
 
 function App() {
@@ -12,10 +13,11 @@ function App() {
 
   return (
     <div className="app">
-      {location.pathname !== '/login' && <Navbar />}
+      {!['/login', '/register'].includes(location.pathname) && <Navbar />}
 
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route
           path="/"

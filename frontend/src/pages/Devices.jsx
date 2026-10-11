@@ -10,6 +10,8 @@ import {
 
 function Devices() {
   const location = useLocation()
+  const isAdmin = localStorage.getItem("role") === "admin"
+
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -234,15 +236,17 @@ function resetForm() {
           </p>
         </div>
 
-        <button
-          className="add-button"
-          onClick={() => setShowForm(!showForm)}
-        >
-          + Add Device
-        </button>
+        {isAdmin && (
+  <button
+    className="add-button"
+    onClick={() => setShowForm(!showForm)}
+  >
+    + Add Device
+  </button>
+)}
       </section>
 
-      {showForm && (
+      {isAdmin && showForm && (
         <section className="device-form-section">
           <div className="section-header">
             <div>
@@ -424,10 +428,10 @@ function resetForm() {
   </div>
 ) : (
   <DeviceTable
-    devices={filteredDevices}
-    onEdit={handleEditDevice}
-    onDelete={handleDeleteDevice}
-  />
+  devices={filteredDevices}
+  onEdit={isAdmin ? handleEditDevice : undefined}
+  onDelete={isAdmin ? handleDeleteDevice : undefined}
+/>
 )}
       </section>
     </main>

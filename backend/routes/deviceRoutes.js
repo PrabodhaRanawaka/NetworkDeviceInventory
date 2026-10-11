@@ -1,12 +1,13 @@
 const express = require("express");
 const Device = require("../models/Device");
+const authorizeRole = require("../middleware/authorizeRole");
 
 const router = express.Router();
 
+// View all devices — admin and regular users
 router.get("/", async (req, res) => {
     try {
         const devices = await Device.find();
-
         res.json(devices);
     } catch (error) {
         res.status(500).json({
@@ -15,6 +16,7 @@ router.get("/", async (req, res) => {
     }
 });
 
+// View maintenance devices — admin and regular users
 router.get("/maintenance", async (req, res) => {
     try {
         const devices = await Device.find();
@@ -51,6 +53,7 @@ router.get("/maintenance", async (req, res) => {
     }
 });
 
+// View one device — admin and regular users
 router.get("/:id", async (req, res) => {
     try {
         const device = await Device.findById(req.params.id);
@@ -69,7 +72,8 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+// Update a device — admin only
+router.put("/:id", authorizeRole("admin"), async (req, res) => {
     try {
         const updatedDevice = await Device.findByIdAndUpdate(
             req.params.id,
@@ -94,10 +98,10 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+// Create a device — admin only
+router.post("/", authorizeRole("admin"), async (req, res) => {
     try {
         const device = new Device(req.body);
-
         const savedDevice = await device.save();
 
         res.status(201).json(savedDevice);
@@ -108,7 +112,8 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+// Delete a device — admin only
+router.delete("/:id", authorizeRole("admin"), async (req, res) => {
     try {
         const deletedDevice = await Device.findByIdAndDelete(req.params.id);
 

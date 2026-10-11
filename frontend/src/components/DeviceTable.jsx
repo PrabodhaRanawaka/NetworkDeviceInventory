@@ -9,7 +9,7 @@ function DeviceTable({ devices, onEdit, onDelete }) {
         <span>Location</span>
         <span>Last Maintenance</span>
         <span>Status</span>
-        <span>Actions</span>
+        {(onEdit || onDelete) && <span>Actions</span>}
       </div>
 
       {devices.length === 0 ? (
@@ -35,21 +35,27 @@ function DeviceTable({ devices, onEdit, onDelete }) {
               {device.status}
             </span>
 
-            <span className="device-actions">
-              <button
-                className="edit-button"
-                onClick={() => onEdit(device)}
-              >
-                Edit
-              </button>
+            {(onEdit || onDelete) && (
+  <span className="device-actions">
+    {onEdit && (
+      <button
+        className="edit-button"
+        onClick={() => onEdit(device)}
+      >
+        Edit
+      </button>
+    )}
 
-              <button
-                className="delete-button"
-                onClick={() => onDelete(device.id)}
-              >
-                Delete
-              </button>
-            </span>
+    {onDelete && (
+      <button
+        className="delete-button"
+        onClick={() => onDelete(device.id)}
+      >
+        Delete
+      </button>
+    )}
+  </span>
+)}
           </div>
         ))
       )}
