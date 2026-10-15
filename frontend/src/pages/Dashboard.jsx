@@ -64,20 +64,21 @@ function Dashboard() {
           </p>
         </div>
 
-        <Link
-  to="/devices"
-  state={{ openAddForm: true }}
-  className="add-button"
->
-  + Add Device
-</Link>
+{localStorage.getItem("role") === "admin" && (
+  <Link
+    to="/devices"
+    state={{ openAddForm: true }}
+    className="add-button"
+  >
+    + Add Device
+  </Link>
+)}
       </section>
 
       <section className="stats">
         <StatCard title="Total Devices" value={totalDevices} />
         <StatCard title="Active Devices" value={activeDevices} />
         <StatCard title="Inactive Devices" value={inactiveDevices} />
-        <StatCard title="Locations" value={locations} />
         <StatCard title="Maintenance Due" value={maintenanceDue} />
       </section>
 
