@@ -1,37 +1,45 @@
-const locations = [
-  {
-    id: 1,
-    name: 'Main Office',
-    description: 'Primary office network',
-    deviceCount: 1,
-  },
-  {
-    id: 2,
-    name: 'First Floor',
-    description: 'First floor network equipment',
-    deviceCount: 1,
-  },
-  {
-    id: 3,
-    name: 'Second Floor',
-    description: 'Second floor network equipment',
-    deviceCount: 1,
-  },
-  {
-    id: 4,
-    name: 'Meeting Room',
-    description: 'Meeting room network equipment',
-    deviceCount: 1,
-  },
-  {
-    id: 5,
-    name: 'Server Room',
-    description: 'Server room network equipment',
-    deviceCount: 1,
-  },
-]
+
+import { useEffect, useState } from 'react'
+import { getDevices } from '../services/deviceService'
 
 function Locations() {
+  const [locations, setLocations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const devices = await getDevices()
+
+        const locationMap = {}
+
+        devices.forEach((device) => {
+          const locationName = device.location?.trim()
+
+          if (!locationName) return
+
+          if (!locationMap[locationName]) {
+            locationMap[locationName] = {
+              name: locationName,
+              deviceCount: 0,
+            }
+          }
+
+          locationMap[locationName].deviceCount += 1
+        })
+
+        setLocations(Object.values(locationMap))
+      } catch (err) {
+        setError('Failed to load locations. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLocations()
+  }, [])
+
   return (
     <main className="main-content">
       <section className="welcome">
@@ -46,20 +54,30 @@ function Locations() {
         </div>
       </section>
 
-      <section className="location-grid">
-        {locations.map((location) => (
-          <div className="location-card" key={location.id}>
-            <h2>{location.name}</h2>
+      {loading && <p>Loading locations...</p>}
 
-            <p>{location.description}</p>
+      {error && <p>{error}</p>}
 
-            <span>
-              {location.deviceCount} device
-              {location.deviceCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-        ))}
-      </section>
+      {!loading && !error && locations.length === 0 && (
+        <p>No locations found. Add devices with a location first.</p>
+      )}
+
+      {!loading && !error && locations.length > 0 && (
+        <section className="location-grid">
+          {locations.map((location) => (
+            <div className="location-card" key={location.name}>
+              <h2>{location.name}</h2>
+
+              <p>Network equipment at this location</p>
+
+              <span>
+                {location.deviceCount} device
+                {location.deviceCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+          ))}
+        </section>
+      )}
     </main>
   )
 }
