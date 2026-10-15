@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
 
 function Login() {
@@ -69,9 +69,13 @@ function Login() {
                     )}
 
                     <button type="submit" className="login-button">
-  Login
+    Login
 </button>
-                </form>
+</form>
+
+<p className="register-link">
+    Don't have an account? <Link to="/register">Register here</Link>
+</p>
             </div>
         </div>
     );
